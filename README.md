@@ -225,14 +225,14 @@ sequenceDiagram
     participant C as Client
     participant A as FastAPI
     participant DB as PostgreSQL
-    C->>A: POST /auth/register {name, email, password}
+    C->>A: "POST /auth/register with name, email, and password"
     A->>DB: INSERT users (Argon2id hash; unique e-mail)
-    A-->>C: 201 {id, name, email, created_at}
-    C->>A: POST /auth/login {email, password}
+    A-->>C: "201 - id, name, email, created_at"
+    C->>A: "POST /auth/login with email and password"
     A->>DB: SELECT user by e-mail
     A->>A: verify Argon2 hash (dummy hash if user unknown)
-    A-->>C: 200 {access_token, token_type, expires_in}
-    C->>A: GET /projects  (Authorization: Bearer token)
+    A-->>C: "200 - access_token, token_type, expires_in"
+    C->>A: "GET /projects with Authorization: Bearer token"
     A->>A: verify signature, exp, pinned algorithm
     A->>DB: SELECT user by sub
     A-->>C: 200 ... (401 if token or user is invalid)
