@@ -225,17 +225,17 @@ sequenceDiagram
     participant C as Client
     participant A as FastAPI
     participant DB as PostgreSQL
-    C->>A: "POST /auth/register with name, email, and password"
-    A->>DB: INSERT users (Argon2id hash; unique e-mail)
-    A-->>C: "201 - id, name, email, created_at"
-    C->>A: "POST /auth/login with email and password"
+    C->>A: POST /auth/register
+    A->>DB: Insert user with Argon2id hash
+    A-->>C: 201 with user details
+    C->>A: POST /auth/login
     A->>DB: SELECT user by e-mail
     A->>A: verify Argon2 hash (dummy hash if user unknown)
-    A-->>C: "200 - access_token, token_type, expires_in"
-    C->>A: "GET /projects with Authorization: Bearer token"
+    A-->>C: 200 with access token
+    C->>A: GET /projects with Bearer token
     A->>A: verify signature, exp, pinned algorithm
     A->>DB: SELECT user by sub
-    A-->>C: 200 ... (401 if token or user is invalid)
+    A-->>C: 200 or 401 if token or user is invalid
 ```
 
 Security measures, each covered by a test: Argon2id hashes (never plaintext, never returned); `SECRET_KEY` required, ≥ 32 chars, taken from the environment; tokens carry `exp` (required) and are decoded with the algorithm pinned (tampered, expired, wrong-secret, `alg=none`, missing-`exp` and non-UUID-subject tokens are all rejected with 401); login returns the **same** error for unknown e-mail and wrong password and does one Argon2 verification either way (timing); e-mails are normalised to lower-case; validation errors never echo the submitted password; the production profile refuses the development placeholder secret.
